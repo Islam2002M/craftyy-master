@@ -1,0 +1,50 @@
+{% extends "dashboard.html" %}
+{% block new_lesson %}
+<div class="{{'tab-pane show active fade p-3' if active_tab=='new_lesson' else 'tab-pane fade p-3'}}" id="nav-newLesson"
+    role="tabpanel" aria-labelledby="nav-newLesson-tab">
+    <form action="{{ url_for('new_lesson') }}" method="POST">
+        {{ new_lesson_form.hidden_tag() }}
+        <fieldset>
+            <legend class="border-bottom my-3">Set Your Available Time</legend>
+            <div class="form-group col-md-6 mb-3">
+                <label for="start_time" class="form-label">Start Time:</label>
+                {{ new_lesson_form.start_time(class='form-control') }}
+            </div>
+            <div class="form-group col-md-6 mb-3">
+                <label for="end_time" class="form-label">End Time:</label>
+                {{ new_lesson_form.end_time(class='form-control') }}
+            </div>
+            <div class="form-group mb-3">
+                <div class="form-check">
+                    {{ new_lesson_form.all_days(class='form-check-input', id='all_days') }}
+                    <label class="form-check-label" for="all_days">Work All Days</label>
+                </div>
+            </div>
+            <div class="form-group col-md-6 mb-3" id="workingDays-input">
+                <label for="workingDays" class="form-label">Working Days:</label>
+                {{ new_lesson_form.workingDays(class='form-control', multiple=True) }}
+            </div>
+            <div class="form-group mb-3">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </fieldset>
+    </form>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const allDaysCheckbox = document.getElementById("all_days");
+    const workingDaysInput = document.getElementById("workingDays-input");
+
+    function toggleworkingDaysInput() {
+        if (allDaysCheckbox.checked) {
+            workingDaysInput.style.display = "none";
+        } else {
+            workingDaysInput.style.display = "block";
+        }
+    }
+
+    allDaysCheckbox.addEventListener("change", toggleworkingDaysInput);
+    toggleworkingDaysInput();
+});
+</script>
+{% endblock new_lesson %}

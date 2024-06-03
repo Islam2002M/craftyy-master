@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Form</title>
+    <style>
+        /* Specific CSS for the appointment form */
+        .appointment-form {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .appointment-form .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .appointment-form h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .appointment-form form .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .appointment-form form .form-row .form-group {
+            flex: 0 0 48%;
+        }
+
+        .appointment-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .appointment-form .form-control {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .appointment-form .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .appointment-form .btn-primary {
+            background-color: #007bff;
+        }
+
+        .appointment-form .btn-primary:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="appointment-form">
+        <div class="container">
+            <h2>Appointment Form</h2>
+            <form method="POST" action="{{ url_for('appointments') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.craft_owner.label }} 
+                        {{ form.craft_owner(class_="form-control", readonly=True) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.service_type.label }} 
+                        {{ form.service_type(class_="form-control", readonly=True) }}
+                    </div>
+                </div>
+            
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.first_name.label }} 
+                        {{ form.first_name(class_="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.last_name.label }} 
+                        {{ form.last_name(class_="form-control") }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.phone_number.label }} 
+                        {{ form.phone_number(class_="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.street_address.label }} 
+                        {{ form.street_address(class_="form-control") }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.city.label }} 
+                        {{ form.city(class_="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.state.label }} 
+                        {{ form.state(class_="form-control") }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.postal_code.label }} 
+                        {{ form.postal_code(class_="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        <label for="appointment_date">Select Appointment Date:</label>
+                        <select id="appointment_date" name="appointment_date" class="form-control">
+                            {% for date in available_dates %}
+                                <option value="{{ date }}">{{ date }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="appointment_time">Select Appointment Time</label>
+                    <select id="appointment_time" name="appointment_time" class="form-control">
+                        {% for slot in slots %}
+                            <option value="{{ slot.period }}">{{ slot.period }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.appointment_purpose.label }} 
+                    {{ form.appointment_purpose(class_="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.message.label }} 
+                    {{ form.message(class_="form-control") }}
+                </div>
+                <br>
+                <div>
+                    {{ form.submit(class_="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('appointment_date').addEventListener('change', function() {
+            var selectedDate = this.value;
+            var craftOwner = "{{ craft_owner }}";  // Pass craft_owner to JS
+            fetch('/get_slots?date=' + selectedDate + '&craft_owner=' + craftOwner)
+                .then(response => response.json())
+                .then(data => {
+                    var slotsSelect = document.getElementById('appointment_time');
+                    slotsSelect.innerHTML = '';
+                    data.slots.forEach(function(slot) {
+                        var option = document.createElement('option');
+                        option.value = slot.period;
+                        option.textContent = slot.period;
+                        slotsSelect.appendChild(option);
+                    });
+                });
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,278 @@
+{% extends "dashboard.html" %}
+
+{% block customerAppointments %}
+<style>
+    .status-red { color: red; }
+    .status-green { color: green; }
+    .status-orange { color: orange; }
+    .status-blue { color: blue; }
+    .status-grey { color: grey; }
+    .rate-area {
+        float: left;
+        border-style: none;
+    }
+
+    .rate-area:not(:checked) > input {
+        position: absolute;
+        top: -9999px;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .rate-area:not(:checked) > label {
+        float: right;
+        width: 0.8em;
+        overflow: hidden;
+        white-space: nowrap;
+        cursor: pointer;
+        font-size: 180%;
+        color: lightgrey;
+    }
+
+    .rate-area:not(:checked) > label:before {
+        content: "★";
+    }
+
+    .rate-area > input:checked ~ label {
+        color: gold;
+    }
+
+    .rate-area:not(:checked) > label:hover,
+    .rate-area:not(:checked) > label:hover ~ label {
+        color: gold;
+    }
+
+    .rate-area > input:checked + label:hover,
+    .rate-area > input:checked + label:hover ~ label,
+    .rate-area > input:checked ~ label:hover,
+    .rate-area > input:checked ~ label:hover ~ label,
+    .rate-area > label:hover ~ input:checked ~ label {
+        color: gold;
+    }
+</style>
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container my-5">
+    <div class="tab-content" id="nav-tabContent">
+        <div class="container d-flex flex-column align-items-center">
+            <div class="row w-100 justify-content-center">
+                <div class="col-md-2 text-center"><h5>Pending</h5></div>
+                <div class="col-md-2 text-center"><h5>Scheduled</h5></div>
+                <div class="col-md-2 text-center"><h5>In Progress</h5></div>
+                <div class="col-md-2 text-center"><h5>Done</h5></div>
+                <div class="col-md-2 text-center"><h5>Canceled</h5></div>
+            </div>
+            <div class="row w-100 justify-content-center">
+                <!-- Pending Appointments -->
+                <div id="pending-appointments" class="col-md-2">
+                    {% for appointment in pending_appointments %}
+                        <div class="card appointment-card" id="appointment-{{ appointment.id }}">
+                            <div class="card-body" onclick="toggleDetails('{{ appointment.id }}')">
+                                <p><strong>Customer:</strong> {{ appointment.first_name }} {{ appointment.last_name }}</p>
+                                <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+                                <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+                                <p><strong>Craft Owner:</strong> {{ appointment.craft_owner }}</p>
+                                <p><strong>Expected Budget:</strong> {{ appointment.expected_budget }}</p>
+                                <p><strong>Status:</strong> <span id="status-{{ appointment.id }}" class="status-red">{{ appointment.status }}</span></p>
+                                <div id="details-{{ appointment.id }}" class="appointment-details" style="display: none;">
+                                    <hr>
+                                    <p><strong>Phone Number:</strong> {{ appointment.phone_number }}</p>
+                                    <p><strong>Street Address:</strong> {{ appointment.street_address }}</p>
+                                    <p><strong>City:</strong> {{ appointment.city }}</p>
+                                    <p><strong>State:</strong> {{ appointment.state }}</p>
+                                    <p><strong>Postal Code:</strong> {{ appointment.postal_code }}</p>
+                                    <p><strong>Purpose:</strong> {{ appointment.appointment_purpose }}</p>
+                                    <p><strong>Message:</strong> {{ appointment.message }}</p>
+                                </div>
+                                {% if appointment.status == 'Pending' %}
+                                <button class="btn btn-danger mt-2" onclick="confirmCancelAppointment(event, '{{ appointment.id }}', '{{ csrf_token() }}')">Cancel</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Repeat for Scheduled, In Progress, Done, and Canceled Appointments -->
+                {% for section, appointments, color_class in [
+                    ('scheduled-appointments', scheduled_appointments, 'status-green'),
+                    ('in-progress-appointments', in_progress_appointments, 'status-orange'),
+                    ('done-appointments', done_appointments, 'status-blue'),
+                    ('canceled-appointments', canceled_appointments, 'status-grey')
+                ] %}
+                <div id="{{ section }}" class="col-md-2">
+                    {% for appointment in appointments %}
+                        <div class="
+                        card appointment-card" id="appointment-{{ appointment.id }}">
+                        <div class="card-body" onclick="toggleDetails('{{ appointment.id }}')">
+                            <p><strong>Customer:</strong> {{ appointment.first_name }} {{ appointment.last_name }}</p>
+                            <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+                            <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+                            <p><strong>Craft Owner:</strong> {{ appointment.craft_owner }}</p>
+                            <p><strong>Expected Budget:</strong> {{ appointment.expected_budget }}</p>
+                            <p><strong>Status:</strong> <span id="status-{{ appointment.id }}" class="{{ color_class }}">{{ appointment.status }}</span></p>
+                            <div id="details-{{ appointment.id }}" class="appointment-details" style="display: none;">
+                                <hr>
+                                <p><strong>Phone Number:</strong> {{ appointment.phone_number }}</p>
+                                <p><strong>Street Address:</strong> {{ appointment.street_address }}</p>
+                                <p><strong>City:</strong> {{ appointment.city }}</p>
+                                <p><strong>State:</strong> {{ appointment.state }}</p>
+                                <p><strong>Postal Code:</strong> {{ appointment.postal_code }}</p>
+                                <p><strong>Purpose:</strong> {{ appointment.appointment_purpose }}</p>
+                                <p><strong>Message:</strong> {{ appointment.message }}</p>
+                            </div>
+                            {% if section == 'done-appointments' %}
+                            <button class="btn btn-warning mt-2" onclick="openRatingModal('{{ appointment.craft_owner }}', '{{ appointment.id }}')">Rate</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Rating Modal -->
+<div id="ratingModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ratingModalLabel" aria-hidden="true">
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="ratingModalLabel">Rate Craft Owner</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeRatingModal()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <ul class="rate-area">
+                <input type="radio" id="5-star" name="rating" value="5" /><label for="5-star" title="Amazing">5 stars</label>
+                <input type="radio" id="4-star" name="rating" value="4" /><label for="4-star" title="Good">4 stars</label>
+                <input type="radio" id="3-star" name="rating" value="3" /><label for="3-star" title="Average">3 stars</label>
+                <input type="radio" id="2-star" name="rating" value="2" /><label for="2-star" title="Not Good">2 stars</label>
+                <input type="radio" id="1-star" name="rating" value="1" /><label for="1-star" title="Bad">1 star</label>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeRatingModal()">Close</button>
+            <button type="button" class="btn btn-primary" onclick="submitRating()" id="submitBtn" disabled>Submit Rating</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Error Modal -->
+<div id="errorModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="errorModalLabel">Error</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p id="errorMessage"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="errorOkBtn" data-dismiss="modal">OK</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let selectedCraftOwner = '';
+    let selectedAppointmentId = '';
+
+    window.showErrorModal = function(message) {
+        $('#errorMessage').text(message);
+        $('#errorModal').modal('show');
+    };
+
+    window.openRatingModal = function(craftOwner, appointmentId) {
+        selectedCraftOwner = craftOwner;
+        selectedAppointmentId = appointmentId;
+        $('#ratingModal').modal('show');
+    };
+
+    window.closeRatingModal = function() {
+        $('#ratingModal').modal('hide');
+    };
+
+    window.enableSubmitBtn = function() {
+        document.getElementById("submitBtn").disabled = false;
+    };
+
+    window.submitRating = function() {
+        const rating = document.querySelector('input[name="rating"]:checked');
+        if (!rating) {
+            showErrorModal('Please select a rating');
+            return;
+        }
+
+        const data = {
+            craft_owner: selectedCraftOwner,
+            appointment_id: selectedAppointmentId,
+            rating: parseInt(rating.value, 10)
+        };
+
+        fetch('/rate_craft_owner', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Thank you for rating the craft owner!');
+                $('#ratingModal').modal('hide');
+            } else {
+                if (data.error === 'already_rated') {
+                    showErrorModal('You have already rated this craft owner for this appointment.');
+                } else {
+                    showErrorModal('Failed to submit rating. Please try again later.');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorModal('An error occurred while submitting rating. Please try again later.');
+        });
+    };
+
+    window.toggleDetails = function(appointmentId) {
+        const details = document.getElementById(`details-${appointmentId}`);
+        if (details.style.display === 'none') {
+            details.style.display = 'block';
+        } else {
+            details.style.display = 'none';
+        }
+    };
+    
+    // Event listener for the OK button in the error modal
+    document.getElementById('errorOkBtn').addEventListener('click', function() {
+        $('#errorModal').modal('hide');
+    });
+
+    // Enable submit button when a
+    document.querySelectorAll('input[name="rating"]').forEach(radio => {
+radio.addEventListener('change', function() {
+enableSubmitBtn();
+});
+});
+});
+</script>
+
+{% endblock %}
+
+vbnet

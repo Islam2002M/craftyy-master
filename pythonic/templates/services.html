@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solution Cards</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='serv.css') }}">
+    <style>
+        /* Styling for the search box */
+        #searchInput {
+            width: 50%;
+            padding: 10px;
+            margin-bottom: 20px;
+            margin-left: 30px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* Styling to make the entire card clickable */
+        .solution_card a {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    {% extends "layout.html" %}
+    {% block content %}
+    <br>
+    <div class="container">
+        <!-- Search input -->
+        <input type="text" id="searchInput" placeholder="Search by a service name...">
+
+        <div class="section_our_solution">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <div class="our_solution_category">
+                        <div class="solution_cards_box">
+                            <!-- Loop through services from the database -->
+                            {% for service in services %}
+                            <div class="solution_card">
+                                <a href="{{ url_for('service_work', service_id=service.id) }}">
+                                    <div class="hover_color_bubble"></div>
+                                    <div class="so_top_icon">
+                                        <img src="{{ url_for('static', filename=service.image_ser) }}" alt="Image"  height="200" style="object-fit: cover;">
+                                    </div>
+                                    <div class="solu_title">
+                                        <h4>{{ service.Name }}</h4>
+                                    </div>
+                                    <div class="solu_description">
+                                        <p>{{ service.description }}</p>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                            <!-- End loop -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Filter cards based on search input
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchQuery = this.value.toLowerCase();
+            const cards = document.querySelectorAll('.solution_card');
+
+            cards.forEach(card => {
+                const title = card.querySelector('.solu_title h4').innerText.toLowerCase();
+
+                if (title.includes(searchQuery)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Get the maximum height of cards and set all cards to that height
+        window.onload = function() {
+            const cards = document.querySelectorAll('.solution_card');
+            let maxHeight = 0;
+
+            cards.forEach(card => {
+                maxHeight = Math.max(maxHeight, card.offsetHeight);
+            });
+
+            cards.forEach(card => {
+                card.style.height = maxHeight + 'px';
+            });
+        };
+    </script>
+    {% endblock %}
+</body>
+</html>

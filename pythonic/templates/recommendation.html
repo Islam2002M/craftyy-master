@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendation</title>
+    <style>
+        /* Custom CSS styles */
+        .card {
+            border: 2px solid #9f0808; /* Red border */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center vertically */
+            align-items: center; /* Center horizontally */
+            text-align: center; /* Center text */
+            padding: 20px; /* Add padding for better readability */
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 10px; /* Add margin below the title */
+        }
+
+        .card-text {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 10px; /* Add margin below the text */
+        }
+
+        .card-title {
+            color: #9f0808; /* Dark red color */
+        }
+
+        .similarity-text {
+            font-size: 0.9rem; /* Adjust font size for similarity text */
+            color: #9f0808; /* Dark red color */
+        }
+
+        /* Center the last two cards */
+        #card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn-primary {
+            background-color: #9f0808; /* Dark red background */
+            border-color: #9f0808; /* Dark red border */
+            color: #fff; /* White text */
+        }
+
+        .btn-primary:hover {
+            background-color: #750606; /* Darker red background on hover */
+            border-color: #750606; /* Darker red border on hover */
+        }
+    </style>
+</head>
+<body>
+    <br>
+    <div class="container">
+        <h1>Recommendation</h1>
+        <p>The problem description submitted is: {{ problem_description }}</p>
+        <br>
+        <div class="row" id="card-container">
+            {% for craft_owner_data in recommended_craft_owner_data %}
+                {% if loop.index <= 5 %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ craft_owner_data['name'] }}</h5>
+                                <p class="card-text">{{ craft_owner_data['description'] }}</p>
+                                <p class="card-text">{{ craft_owner_data['address'] }}</p>
+                                <p class="similarity-text">Similarity: {{ craft_owner_data['similarity_score'] | round(2) }}</p>
+                                <a href="/appointments?craft_owner={{ craft_owner_data['name'] }}&service_type={{ craft_owner_data['service_type'] }}" class="btn btn-primary">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to dynamically adjust card heights
+        window.addEventListener('load', function() {
+            var cards = document.querySelectorAll('.card-body');
+            var maxHeight = 0;
+            cards.forEach(function(card) {
+                var height = card.offsetHeight;
+                if (height > maxHeight) {
+                    maxHeight = height;
+                }
+            });
+            cards.forEach(function(card) {
+                card.style.height = maxHeight + 'px';
+            });
+        });
+    </script>
+</body>
+</html>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "dashboard.html" %}
+{% block manage_appointments %}
+<div class="container">
+    <div class="row">
+        <!-- Pending Appointments -->
+        <div class="col-md-3">
+            <br>
+            <h5 class="text-center">Pending</h5>
+            <br>
+            {% for appointment in pending_appointments %}
+                <div class="card appointment-card" onclick="toggleDetails('{{ appointment.id }}')">
+                    <div class="card-body">
+                        <p><strong>Customer:</strong> {{ appointment.first_name }} {{ appointment.last_name }}</p>
+                        <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+                        <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+                        <p><strong>Status:</strong> <span id="status-{{ appointment.id }}" style="color: red;">{{ appointment.status }}</span></p>
+                        <div id="details-{{ appointment.id }}" class="appointment-details" style="display: none;">
+                            <hr>
+                            <p><strong>Phone Number:</strong> {{ appointment.phone_number }}</p>
+                            <p><strong>Street Address:</strong> {{ appointment.street_address }}</p>
+                            <p><strong>City:</strong> {{ appointment.city }}</p>
+                            <p><strong>State:</strong> {{ appointment.state }}</p>
+                            <p><strong>Postal Code:</strong> {{ appointment.postal_code }}</p>
+                            <p><strong>Purpose:</strong> {{ appointment.appointment_purpose }}</p>
+                            <p><strong>Message:</strong> {{ appointment.message }}</p>
+                            
+                            <form id="form-{{ appointment.id }}" method="POST" action="{{ url_for('manage_appointments') }}">
+                                {{ form.hidden_tag() }}
+                                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                <div class="form-group">
+                                    <label for="expected_budget_{{ appointment.id }}">Expected Budget:</label>
+                                    <input type="text" name="expected_budget" id="expected_budget_{{ appointment.id }}" class="form-control" placeholder="Enter expected budget" onclick="event.stopPropagation();">
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" name="action" value="schedule" class="btn btn-success" onclick="changeStatus('{{ appointment.id }}', 'Scheduled', 'green')">Schedule</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Scheduled Appointments -->
+        <div class="col-md-3">
+            <br>
+            <h5 class="text-center">Scheduled</h5>
+            <br>
+            {% for appointment in scheduled_appointments %}
+                <div class="card appointment-card" onclick="toggleDetails('{{ appointment.id }}')">
+                    <div class="card-body">
+                        <p><strong>Customer:</strong> {{ appointment.first_name }} {{ appointment.last_name }}</p>
+                        <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+                        <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+                        <p><strong>Status:</strong> <span id="status-{{ appointment.id }}" style="color: green;">{{ appointment.status }}</span></p>
+                        <div id="details-{{ appointment.id }}" class="appointment-details" style="display: none;">
+                            <hr>
+                            <p><strong>Phone Number:</strong> {{ appointment.phone_number }}</p>
+                            <p><strong>Street Address:</strong> {{ appointment.street_address }}</p>
+                            <p><strong>City:</strong> {{ appointment.city }}</p>
+                            <p><strong>State:</strong> {{ appointment.state }}</p>
+                            <p><strong>Postal Code:</strong> {{ appointment.postal_code }}</p>
+                            <p><strong>Purpose:</strong> {{ appointment.appointment_purpose }}</p>
+                            <p><strong>Message:</strong> {{ appointment.message }}</p>
+                            <p><strong>Expected Budget:</strong> {{ appointment.expected_budget }}</p>
+                            <form id="form-{{ appointment.id }}" method="POST" action="{{ url_for('manage_appointments') }}">
+                                {{ form.hidden_tag() }}
+                                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                <div class="form-group">
+                                    <button type="submit" name="action" value="in_progress" class="btn btn-warning" onclick="changeStatus('{{ appointment.id }}', 'In Progress', 'orange')">In Progress</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- In Progress Appointments -->
+        <div class="col-md-3">
+            <br>
+            <h5 class="text-center">In Progress</h5>
+            <br>
+            {% for appointment in in_progress_appointments %}
+                <div class="card appointment-card" onclick="toggleDetails('{{ appointment.id }}')">
+                    <div class="card-body">
+                        <p><strong>Customer:</strong> {{ appointment.first_name }} {{ appointment.last_name }}</p>
+                        <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+                        <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+                        <p><strong>Status:</strong> <span id="status-{{ appointment.id }}" style="color: orange;">{{ appointment.status }}</span></p>
+                        <div id="details-{{ appointment.id }}" class="appointment-details" style="display: none;">
+                            <hr>
+                            <p><strong>Phone Number:</strong> {{ appointment.phone_number }}</p>
+                            <p><strong>Street Address:</strong> {{ appointment.street_address }}</p>
+                            <p><strong>City:</strong> {{ appointment.city }}</p>
+                            <p><strong>State:</strong> {{ appointment.state }}</p>
+                            <p><strong>Postal Code:</strong> {{ appointment.postal_code }}</p>
+                            <p><strong>Purpose:</strong> {{ appointment.appointment_purpose }}</p>
+                            <p><strong>Message:</strong> {{ appointment.message }}</p>
+                            <p><strong>Expected Budget:</strong> {{ appointment.expected_budget }}</p>
+                            <form id="form-{{ appointment.id }}" method="POST" action="{{ url_for('manage_appointments') }}">
+                                {{ form.hidden_tag() }}
+                                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                <div class="form-group">
+                                    <button type="submit" name="action" value="done" class="btn btn-primary" onclick="changeStatus('{{ appointment.id }}', 'Done', 'blue')">Done</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Done Appointments -->
+        <div class="col-md-3">
+            <br>
+            <h5 class="text-center">Done</h5>
+            <br>
+            {% for appointment in done_appointments %}
+                <div class="card appointment-card" onclick="toggleDetails('{{ appointment.id }}')">
+                    <div class="card-body">
+                        <p><strong>Customer:</strong> {{ appointment.first_name }} {{ appointment.last_name }}</p>
+                        <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+                        <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+                        <p><strong>Status:</strong> <span id="status-{{ appointment.id }}" style="color: blue;">{{ appointment.status }}</span></p>
+                        <div id="details-{{ appointment.id }}" class="appointment-details" style="display: none;">
+                            <hr>
+                            <p><strong>Phone Number:</strong> {{ appointment.phone_number }}</p>
+                            <p><strong>Street Address:</strong> {{ appointment.street_address }}</p>
+                            <p><strong>City:</strong> {{ appointment.city }}</p>
+                            <p><strong>State:</strong> {{ appointment.state }}</p>
+                            <p><strong>Postal Code:</strong> {{ appointment.postal_code }}</p>
+                            <p><strong>Purpose:</strong> {{ appointment.appointment_purpose }}</p>
+                            <p><strong>Message:</strong> {{ appointment.message }}</p>
+                            <p><strong>Expected Budget:</strong> {{ appointment.expected_budget }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDetails(id) {
+        var details = document.getElementById('details-' + id);
+        details.style.display = (details.style.display === 'none' ? 'block' : 'none');
+    }
+
+    function changeStatus(id, newStatus, color) {
+        var statusSpan = document.getElementById('status-' + id);
+        statusSpan.textContent = newStatus;
+        statusSpan.style.color = color; // Change color
+        var scheduleButton = document.querySelector('#form-' + id + ' button');
+        if (newStatus === 'Scheduled') {
+            scheduleButton.textContent = 'Scheduled';
+            scheduleButton.className = 'btn btn-success';
+        } else if (newStatus === 'In Progress') {
+            scheduleButton.textContent = 'In Progress';
+            scheduleButton.className = 'btn btn-warning';
+        } else if (newStatus === 'Done') {
+            scheduleButton.textContent = 'Done';
+            scheduleButton.className = 'btn btn-primary';
+        }
+    }
+</script>
+
+<style>
+    .appointment-card {
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+
+    .appointment-details {
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .text-center {
+        text-align: center;
+    }
+</style>
+{% endblock manage_appointments %}

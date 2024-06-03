@@ -1,0 +1,33 @@
+{% extends "dashboard.html" %}
+{% block newWork %} 
+<div class="container">
+    <!-- Include the newWork form here -->
+    <h2>Create New Work</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <form action="{{ url_for('newWork') }}" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    {{ form.title(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    <label for="content" class="form-label">Description</label>
+                    {{ form.content(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    <label for="images" class="form-label">Upload Images</label>
+                    {{ form.images(class="form-control", multiple=true) }}
+                </div>
+                <!-- Display the craft owner's name as a link to their profile -->
+                
+                <div class="form-group">
+                    <div class="col-12">
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock newWork %}

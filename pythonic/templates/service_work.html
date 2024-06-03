@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Works for {{ service.Name }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .container {
+            padding: 20px;
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-body {
+            text-align: center;
+        }
+
+        .btn-primary, .btn-danger {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Works for {{ service.Name }}</h1>
+        <br><br>
+        <div class="row">
+            {% for work in works %}
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="{{ url_for('static', filename='uploads/' ~ work.img) }}" class="card-img-top" alt="{{ work.title }}">
+                    <!-- Debug: Print the image URL -->
+                    <div class="card-body">
+                        <h5 class="card-title">{{ work.title }}</h5>
+                        <p class="card-text">{{ work.content }}</p>
+                        <p>By: <a href="{{ url_for('view_profile', user_id=work.user_id) }}">{{ work.maker.username }}</a></p>
+                        <p>On: {{ work.date_posted.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

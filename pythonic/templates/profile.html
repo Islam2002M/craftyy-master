@@ -1,0 +1,142 @@
+{% extends "dashboard.html" %}
+{% block profile %}
+
+<div class="{{'tab-pane show active fade p-3' if active_tab=='profile' else 'tab-pane fade p-3'}}" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+    {% if is_current_user %}
+    <!-- Form for editing profile -->
+    <form action="{{ url_for('edit_profile') }}" method="POST" enctype="multipart/form-data">
+        {{ profile_form.hidden_tag() }}
+        <fieldset class='form-group'>
+            <legend class='border-bottom mb-4'>Personal Information</legend>
+            <img class="rounded-circle user-img" src="{{image_file}}" alt="">
+            <div class='form-group'>
+                <div class="row mb-3">
+                    <div class="col">
+                        {{ profile_form.username.label(class='form-control-label') }}
+                        {% if profile_form.username.errors %}
+                        {{ profile_form.username(class='form-control form-control-lg is-invalid') }}
+                        <div class="invalid-feedback">
+                            {% for error in profile_form.username.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ profile_form.username(class='form-control form-control') }}
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {{ profile_form.email.label(class='form-control-label') }}
+                        {% if profile_form.email.errors %}
+                        {{ profile_form.email(class='form-control form-control-lg is-invalid') }}
+                        <div class="invalid-feedback">
+                            {% for error in profile_form.email.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ profile_form.email(class='form-control form-control') }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col">
+                        {{ profile_form.address.label(class='form-control-label') }}
+                        {% if profile_form.address.errors %}
+                        {{ profile_form.address(class='form-control form-control-lg is-invalid') }}
+                        <div class="invalid-feedback">
+                            {% for error in profile_form.address.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ profile_form.address(class='form-control form-control') }}
+                        {% endif %}
+                    </div>
+                    <div class="col">
+                        {{ profile_form.contactNumber.label(class='form-control-label') }}
+                        {% if profile_form.contactNumber.errors %}
+                        {{ profile_form.contactNumber(class='form-control form-control-lg is-invalid') }}
+                        <div class="invalid-feedback">
+                            {% for error in profile_form.contactNumber.errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        {{ profile_form.contactNumber(class='form-control form-control') }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <legend class="border-bottom my-3">Description</legend>
+            <div class="form-group">
+                <div class="col">
+                    {{ profile_form.description.label(class='form-control-label') }}
+                    {% if profile_form.description.errors %}
+                    {{ profile_form.description(class='form-control form-control-lg is-invalid') }}
+                    <div class="invalid-feedback">
+                        {% for error in profile_form.description.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ profile_form.description(class='form-control form-control') }}
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    {{ profile_form.picture.label }}
+                    {{ profile_form.picture(class='form-control-file') }}
+                    {% if profile_form.picture.errors %}
+                    {% for error in profile_form.picture.errors %}
+                    <span class="text-danger">{{ error }}</span><br>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-success" type="submit">Update</button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+    {% else %}
+    <!-- Display user information -->
+    <fieldset class='form-group'>
+        <legend class='border-bottom mb-4'>Personal Information</legend>
+        <img class="rounded-circle user-img" src="{{image_file}}" alt="">
+        <div class='form-group'>
+            <div class="row mb-3">
+                <div class="col">
+                    <label class='form-control-label'>Username</label>
+                    <p class="form-control form-control-lg">{{ user.username }}</p>
+                </div>
+                <div class="col">
+                    <label class='form-control-label'>Email</label>
+                    <p class="form-control form-control-lg">{{ user.email }}</p>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
+                    <label class='form-control-label'>Address</label>
+                    <p class="form-control form-control-lg">{{ user.address }}</p>
+                </div>
+                <div class="col">
+                    <label class='form-control-label'>Contact Number</label>
+                    <p class="form-control form-control-lg">{{ user.contactNumber }}</p>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend class="border-bottom my-3">Description</legend>
+        <div class="form-group">
+            <div class="col">
+                <label class='form-control-label'>Description</label>
+                <p class="form-control form-control-lg">{{ user.description }}</p>
+            </div>
+        </div>
+    </fieldset>
+    {% endif %}
+</div>
+
+{% endblock profile %}

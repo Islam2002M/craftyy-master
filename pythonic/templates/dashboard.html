@@ -1,0 +1,61 @@
+
+{% extends "layout.html" %}
+{% block content %}
+<div class="container my-5">
+    <nav>
+        <div class="nav nav-tabs" id="tablist">
+            <a class="link" href="/dashboard/profile">
+                <button class="{{ 'nav-link active' if active_tab == 'profile' else 'nav-link' }}" id="nav-profile-tab"
+                    data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab"
+                    aria-controls="nav-profile" aria-selected="true">Profile</button>
+            </a>
+
+            {% if current_user.user_type == 'Craft Owner' %}
+            <a class="link" href="/dashboard/new_lesson">
+                <button class="{{ 'nav-link active' if active_tab == 'new_lesson' else 'nav-link' }}" id="nav-newLesson-tab"
+                    data-bs-toggle="tab" data-bs-target="#nav-newLesson" type="button" role="tab"
+                    aria-controls="nav-newLesson" aria-selected="true">Available Times</button>
+            </a>
+
+            <a class="link" href="/dashboard/manage_appointments">
+                <button class="{{ 'nav-link active' if active_tab == 'manage_appointments' else 'nav-link' }}" id="nav-manageAppointments-tab"
+                    data-bs-toggle="tab" data-bs-target="#nav-manageAppointments" type="button" role="tab"
+                    aria-controls="nav-manageAppointments" aria-selected="true">Manage Appointments</button>
+            </a>
+            <a class="link" href="/dashboard/newWork">
+                <button class="{{ 'nav-link active' if active_tab == 'newWork' else 'nav-link' }}" id="nav-newWork-tab"
+                    data-bs-toggle="tab" data-bs-target="#nav-newWork" type="button" role="tab"
+                    aria-controls="nav-newWork" aria-selected="true">New Work</button>
+            </a>
+            <a class="link" href="/dashboard/myWorks">
+                <button class="{{ 'nav-link active' if active_tab == 'myWorks' else 'nav-link' }}" id="nav-myWorks-tab"
+                    data-bs-toggle="tab" data-bs-target="#nav-myWorks" type="button" role="tab"
+                    aria-controls="nav-myWorks'" aria-selected="true">My Works</button>
+            </a>
+            {% endif %}
+
+            {% if current_user.user_type == 'customer' %}
+            <a class="link" href="/dashboard/customerAppointments">
+                <button class="{{ 'nav-link active' if active_tab == 'customerAppointments' else 'nav-link' }}" id="nav-customerAppointments-tab"
+                    data-bs-toggle="tab" data-bs-target="#nav-customerAppointments" type="button" role="tab"
+                    aria-controls="nav-customerAppointments" aria-selected="true">Customer Appointments</button>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+    <!-- Tab contents here -->
+    <div class="tab-content" id="nav-tabContent">
+        <!-- profile -->
+        {% block profile %} {% endblock profile %}
+        <!-- New Lesson -->
+        {% block new_lesson %} {% endblock new_lesson %}
+
+        {% block manage_appointments %} {% endblock manage_appointments %}
+        {% block newWork %} {% endblock newWork %}
+
+        {% block customerAppointments %} {% endblock customerAppointments %}
+        {% block myWorks %} {% endblock myWorks %}
+
+    </div>
+</div>
+{% endblock content %}

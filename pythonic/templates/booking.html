@@ -1,0 +1,36 @@
+<!-- booking.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Craft Recommendation</title>
+</head>
+<body>
+  {% extends "layout.html" %}
+  {% block content %}
+  <br>
+  <div class="container">
+    <h1>Describe Your Problem</h1>
+    <p>Please provide a detailed description of your problem, any specific requirements you have, and the max budget you can pay.</p>
+
+    <form id="problemForm" method="POST" action="{{ url_for('handle_problem_form') }}">
+      {{ problem_form.hidden_tag() }}
+      <div class="mb-3">
+        <label for="problemDescription" class="form-label">Problem Description:</label>
+        {{ problem_form.problem_description(class="form-control", rows=5) }}
+        {% for error in problem_form.problem_description.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <div id="craftsmanRecommendations" class="mt-5">
+    </div>
+  </div>
+  </body>
+</html>
+{% endblock %}

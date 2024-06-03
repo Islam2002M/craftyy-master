@@ -1,0 +1,27 @@
+{% extends "dashboard.html" %}
+{% block content %}
+<div class="container">
+    <br>
+    <h1>My Works</h1>
+    <br>
+    <div class="row">
+        {% for work in works %}
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <img src="{{ url_for('static', filename='uploads/' ~ work.img) }}" class="card-img-top" alt="{{ work.title }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ work.title }}</h5>
+                    <p class="card-text">{{ work.content }}</p>
+                    <p>By: {{ current_user.username }}</p>
+                    <p>On: {{ work.date_posted.strftime('%Y-%m-%d') }}</p>
+                    <a href="{{ url_for('edit_work', work_id=work.id) }}" class="btn btn-primary">Update</a>
+                    <form action="{{ url_for('delete_work', work_id=work.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
