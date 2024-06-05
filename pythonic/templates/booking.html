@@ -1,5 +1,3 @@
-<!-- booking.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +9,6 @@
   {% extends "layout.html" %}
   {% block content %}
   <br>
-  
   <div class="container">
     <h1>Describe Your Problem</h1>
     <p>Please provide a detailed description of your problem, any specific requirements you have, and the max budget you can pay.</p>
@@ -24,6 +21,28 @@
         {% for error in problem_form.problem_description.errors %}
           <div class="text-danger">{{ error }}</div>
         {% endfor %}
+      </div>
+
+      <div class="mb-3">
+        <label for="preferredDays" class="form-label">Preferred Days:</label>
+        <select id="preferredDays" name="preferred_days" class="form-control" multiple>
+          <option value="monday">Monday</option>
+          <option value="tuesday">Tuesday</option>
+          <option value="wednesday">Wednesday</option>
+          <option value="thursday">Thursday</option>
+          <option value="friday">Friday</option>
+          <option value="saturday">Saturday</option>
+          <option value="sunday">Sunday</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="preferredTimes" class="form-label">Preferred Times:</label>
+        <select id="preferredTimes" name="preferred_times" class="form-control" multiple>
+          <option value="morning">Morning (8 AM - 12 PM)</option>
+          <option value="afternoon">Afternoon (12 PM - 4 PM)</option>
+          <option value="evening">Evening (4 PM - 8 PM)</option>
+        </select>
       </div>
 
       <button type="submit" class="btn btn-primary">Submit</button>

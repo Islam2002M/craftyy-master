@@ -114,8 +114,20 @@ class UpdateProfileForm(FlaskForm):
                 )
 class ProblemForm(FlaskForm):
     problem_description = TextAreaField('Problem Description', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
+    preferred_days = SelectMultipleField('Preferred Days', choices=[
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+        ('saturday', 'Saturday'),
+        ('sunday', 'Sunday')
+    ])
+    preferred_times = SelectMultipleField('Preferred Times', choices=[
+        ('morning', 'Morning (8 AM - 12 PM)'),
+        ('afternoon', 'Afternoon (12 PM - 4 PM)'),
+        ('evening', 'Evening (4 PM - 8 PM)')
+    ])
 
 
 class NewLessonForm(FlaskForm):
