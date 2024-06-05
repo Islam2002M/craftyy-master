@@ -43,7 +43,7 @@ class Work(db.Model):
     title = db.Column(db.String(100), nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
-    img = db.Column(db.String(20), nullable=False, default="default_thumbnail.jpg")
+    img = db.Column(db.String(20), nullable=True, default="default_thumbnail.jpg")
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     service_id=db.Column(db.Integer, db.ForeignKey("service.id"), nullable=False)
     #course_id = db.Column(db.Integer, db.ForeignKey("course.id"), nullable=False)

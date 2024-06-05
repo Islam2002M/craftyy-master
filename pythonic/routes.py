@@ -2,6 +2,7 @@ from datetime import datetime , time, timedelta
 import secrets
 import os
 import logging
+import requests
 from venv import logger
 from PIL import Image
 from werkzeug.utils import secure_filename
@@ -488,7 +489,6 @@ def cancel_appointment(appointment_id):
     db.session.commit()
     return jsonify({"success": True})
 
-
 @app.route("/dashboard/newWork", methods=["GET", "POST"])
 @login_required
 def newWork():
@@ -703,15 +703,47 @@ def rate_craft_owner():
         app.logger.error(f'Craft owner or appointment not found: {craft_owner_name}, {appointment_id}')
         return jsonify({'success': False, 'error': 'Craft owner or appointment not found'}), 404
 
-    new_rating = rating(craft_owner_id=user.id, customer_id=appointment.customer_id, appointment_id=appointment.id, rating=rating)
+    new_rating = Rating(craft_owner_id=user.id, customer_id=appointment.customer_id, appointment_id=appointment.id, rating=rating)
     db.session.add(new_rating)
     db.session.commit()
 
     # Update average rating
-    ratings = rating.query.filter_by(craft_owner_id=user.id).all()
+    ratings = Rating.query.filter_by(craft_owner_id=user.id).all()
     avg_rating = sum(r.rating for r in ratings) / len(ratings)
     user.average_rating = avg_rating
     db.session.commit()
 
     app.logger.info(f'Successfully rated craft owner: {craft_owner_name} with rating {rating}')
     return jsonify({'success': True})
+
+    
+def translate_arabic_to_english(api_key, arabic_text):
+    endpoint = "https://api.openai.com/v1/engines/davinci/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+    data = {
+        "prompt": arabic_text,
+        "max_tokens": 100,
+        "temperature": 0,
+        "top_p": 1,
+        "frequency_penalty": 0,
+        "presence_penalty": 0
+    }
+    response = requests.post(endpoint, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json()["choices"][0]["text"]
+    else:
+        return None
+
+@app.route('/transarb')
+def transarb():
+    return render_template('translate.html')
+
+@app.route('/translate', methods=['POST'])
+def translate():
+    api_key = request.form['api_key']
+    arabic_text = request.form['arabic_text']
+    english_text = translate_arabic_to_english(api_key, arabic_text)
+    return render_template('translate.html', english_text=english_text)

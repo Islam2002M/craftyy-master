@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic to English Translation</title>
+</head>
+<body>
+    <h1>Arabic to English Translation</h1>
+    <form action="/translate" method="post">
+        <label for="api_key">API Key:</label>
+        <input type="text" id="api_key" name="api_key" required><br><br>
+        <label for="arabic_text">Arabic Text:</label><br>
+        <textarea id="arabic_text" name="arabic_text" rows="4" cols="50" required></textarea><br><br>
+        <input type="submit" value="Translate">
+    </form>
+
+    {% if english_text %}
+    <h2>English Translation:</h2>
+    <p>{{ english_text }}</p>
+    {% endif %}
+</body>
+</html>
