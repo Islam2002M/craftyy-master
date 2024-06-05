@@ -681,7 +681,7 @@ def update_average_ratings_route():
     update_average_ratings()
     return "Average ratings updated successfully."
 
-@app.route('/rate_craft_owner', methods=['POST'])
+@app.route('/rate_craft_owner', methods=['POST']) 
 def rate_craft_owner():
     data = request.json
     if not data:
