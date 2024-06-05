@@ -1,6 +1,7 @@
 from datetime import datetime , time, timedelta 
 import secrets
 import os
+import numpy as np
 import logging
 import requests
 from venv import logger
@@ -587,20 +588,26 @@ def handle_problem_form():
     if request.method == 'POST' and problem_form.validate():
         # Retrieve the problem description from the form data
         problem_description = problem_form.problem_description.data
-
-        # Retrieve craft owners' names, descriptions, addresses, and service types from the User table in the database
+        preferred_days = problem_form.preferred_days.data  # This should be a list already
+        
+        # Retrieve craft owners' details along with their availability
         craft_owners = User.query.filter_by(user_type='Craft Owner').all()
-        craft_owner_data = [(craft_owner.username, craft_owner.description, craft_owner.address, craft_owner.service_type) for craft_owner in craft_owners]
-
+        craft_owner_data = []
+        for craft_owner in craft_owners:
+            availabilities = Availability.query.filter_by(owner_id=craft_owner.id).all()
+            availability_days = []
+            for availability in availabilities:
+                availability_days.extend(availability.days.split(', '))
+            craft_owner_data.append((craft_owner.username, craft_owner.description, craft_owner.address, craft_owner.service_type, list(set(availability_days))))
+        
         # Recommend craft owners based on cosine similarity
-        recommended_craft_owner_data = recommend_craft_owners(craft_owner_data, problem_description)
+        recommended_craft_owner_data = recommend_craft_owners(craft_owner_data, problem_description, preferred_days)
 
         # Render template with recommendation results
         return render_template('recommendation.html', problem_description=problem_description, recommended_craft_owner_data=recommended_craft_owner_data)
     
     # If form is not valid, render the form again
     return render_template('booking.html', problem_form=problem_form)
-
 
 def preprocess_text(text):
     if text is None:
@@ -621,7 +628,6 @@ def preprocess_text(text):
     print("Preprocessed Text:", preprocessed_text)  # Debugging print statement
     return preprocessed_text
 
-
 def get_wordnet_pos(tag):
     if tag.startswith("J"):
         return wordnet.ADJ
@@ -634,34 +640,51 @@ def get_wordnet_pos(tag):
     else:
         return None
 
-def recommend_craft_owners(craft_owner_data, customer_problem_description):
+def days_to_vector(days):
+    all_days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    return np.array([1 if day.lower() in days else 0 for day in all_days])
+
+def recommend_craft_owners(craft_owner_data, customer_problem_description, preferred_days):
     # Preprocess craft owner descriptions and customer problem description
     preprocessed_craft_owner_descriptions = [preprocess_text(desc[1]) + " " + preprocess_text(desc[2]) for desc in craft_owner_data]
     preprocessed_customer_problem_description = preprocess_text(customer_problem_description)
 
-    # Calculate TF-IDF vectors
+    # Calculate TF-IDF vectors for descriptions
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform(preprocessed_craft_owner_descriptions + [preprocessed_customer_problem_description])
 
-    # Calculate cosine similarity
-    similarity_matrix = cosine_similarity(tfidf_matrix[:-1], tfidf_matrix[-1])
+    # Calculate cosine similarity for descriptions
+    description_similarity_matrix = cosine_similarity(tfidf_matrix[:-1], tfidf_matrix[-1])
 
-    # Get craft owners sorted by similarity score in descending order
-    sorted_craft_owners = sorted(zip(craft_owner_data, similarity_matrix), key=lambda x: x[1], reverse=True)
+    # Convert days to vectors
+    preferred_days_vector = days_to_vector(preferred_days)
+    available_days_vectors = [days_to_vector(desc[4]) for desc in craft_owner_data]
+
+    # Calculate cosine similarity for days
+    days_similarity_scores = [cosine_similarity([preferred_days_vector], [available_days_vector])[0][0] for available_days_vector in available_days_vectors]
+
+    # Combine both similarities
+    combined_similarity_scores = [(desc, (description_similarity_matrix[idx][0] + days_similarity_scores[idx]) / 2) for idx, desc in enumerate(craft_owner_data)]
+
+    # Sort craft owners by combined similarity score in descending order
+    sorted_craft_owners = sorted(combined_similarity_scores, key=lambda x: x[1], reverse=True)
     
     # Prepare craft owner data as a list of dictionaries
     recommended_craft_owner_data = []
     for craft_owner, similarity_score in sorted_craft_owners:
-        name, description, address, service_type = craft_owner  # Ensure service_type is included here
+        name, description, address, service_type, availability = craft_owner
         recommended_craft_owner_data.append({
             'name': name,
             'description': description,
             'address': address,
-            'service_type': service_type,  # Include service_type
-            'similarity_score': similarity_score[0]  # Assuming similarity_score is a single value in a list
+            'service_type': service_type,
+            'availability': ', '.join(availability),
+            'similarity_score': similarity_score
         })
 
     return recommended_craft_owner_data
+
+# Assume other parts of your Flask app and required imports are defined elsewhere
 
 def update_average_ratings():
     craft_owners = User.query.filter_by(user_type='Craft Owner').all()
