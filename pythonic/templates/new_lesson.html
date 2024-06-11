@@ -14,12 +14,6 @@
                 <label for="end_time" class="form-label">End Time:</label>
                 {{ new_lesson_form.end_time(class='form-control') }}
             </div>
-            <div class="form-group mb-3">
-                <div class="form-check">
-                    {{ new_lesson_form.all_days(class='form-check-input', id='all_days') }}
-                    <label class="form-check-label" for="all_days">Work All Days</label>
-                </div>
-            </div>
             <div class="form-group col-md-6 mb-3" id="workingDays-input">
                 <label for="workingDays" class="form-label">Working Days:</label>
                 {{ new_lesson_form.workingDays(class='form-control', multiple=True) }}
@@ -31,20 +25,5 @@
     </form>
 </div>
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const allDaysCheckbox = document.getElementById("all_days");
-    const workingDaysInput = document.getElementById("workingDays-input");
-
-    function toggleworkingDaysInput() {
-        if (allDaysCheckbox.checked) {
-            workingDaysInput.style.display = "none";
-        } else {
-            workingDaysInput.style.display = "block";
-        }
-    }
-
-    allDaysCheckbox.addEventListener("change", toggleworkingDaysInput);
-    toggleworkingDaysInput();
-});
 </script>
 {% endblock new_lesson %}

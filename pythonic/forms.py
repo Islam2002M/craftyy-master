@@ -14,10 +14,9 @@ from wtforms.validators import (
 )
 from pythonic.models import User
 
+
 class RegistrationForm(FlaskForm):
-    username = StringField(
-        "Username", validators=[DataRequired(), Length(min=2, max=25)]
-    )
+    username = StringField("Username", validators=[DataRequired(), Length(min=2, max=25)])
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField(
         "Password",
@@ -31,39 +30,37 @@ class RegistrationForm(FlaskForm):
     confirm_password = PasswordField(
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
     )
-    address = StringField(
-        "Address", validators=[DataRequired(), Length(min=2, max=25)]
-    )
+    address = StringField("Address", validators=[DataRequired(), Length(min=2, max=25)])
     contactNumber = StringField(
-    "Contact Number",
-    validators=[
-        DataRequired(),
-        Length(min=10, max=10),
-        Regexp('^[0-9]*$', message='Contact number must contain only numbers')
-    ]
-)
+        "Contact Number",
+        validators=[
+            DataRequired(),
+            Length(min=10, max=10),
+            Regexp('^[0-9]*$', message='Contact number must contain only numbers')
+        ]
+    )
     user_type = SelectField(
         "User Type",
-        choices=[("customer", "Customer"), ("craft_owner", "Craft Owner")],
+        choices=[("customer", "Customer"), ("Craft Owner", "Craft Owner")],
         validators=[DataRequired()],
     )
-    service_type = SelectField("Service Type", choices=[("painting", "Painting"), ("plumbing", "Plumbing"), ("appliance_repair", "Appliance Repair"), ("carpentry", "Carpentry"), ("furniture_moving", "Furniture Moving"), ("other", "Other")],validators=[DataRequired()],)
+    service_type = SelectField(
+        "Service Type",
+        choices=[("Painting", "Painting"), ("plumbing", "Plumbing"), ("Cleaning", "Cleaning"), ("Carpentry", "Carpentry"), ("Moving Furniture", "Furniture Moving"), ("electrical", "Electrical"), ("other", "Other")],
+        validators=[DataRequired()],
+    )
     description = TextAreaField("Description")
-
-    #lname = StringField("Last Name", validators=[DataRequired(), Length(min=2, max=25)])
     submit = SubmitField("Sign Up")
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError(
-                "Username already exists! Please chosse a different one"
-            )
+            raise ValidationError("Username already exists! Please choose a different one")
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user:
-            raise ValidationError("Email already exists! Please chosse a different one")
+            raise ValidationError("Email already exists! Please choose a different one")
         
 class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
@@ -140,10 +137,11 @@ class ProblemForm(FlaskForm):
     ])
     submit = SubmitField('Submit')
 
+
+
 class NewLessonForm(FlaskForm):
     start_time = TimeField('Start Time', validators=[DataRequired()])
     end_time = TimeField('End Time', validators=[DataRequired()])
-    all_days = BooleanField('Work All Days')
     workingDays = SelectMultipleField(
         'Working Days', 
         choices=[
@@ -157,6 +155,7 @@ class NewLessonForm(FlaskForm):
         ],
         validators=[DataRequired()]
     )
+
 
 class AppointmentForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])

@@ -50,9 +50,7 @@ def register():
         return redirect(url_for("home"))
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode(
-            "utf-8"
-        )
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -61,16 +59,21 @@ def register():
             contactNumber=form.contactNumber.data,
             user_type=form.user_type.data,
         )
-        if form.user_type.data == 'craft_owner':
+        if form.user_type.data == 'Craft Owner':
+            # Get the service based on the selected name
+            selected_service = Service.query.filter_by(Name=form.service_type.data).first()
+            if selected_service:
+                user.service_id = selected_service.id
             user.service_type = form.service_type.data
             user.description = form.description.data
         db.session.add(user)
         db.session.commit()
         login_user(user)
-
         flash(f"Account created successfully for {form.username.data} as a {form.user_type.data}", "success")
         return redirect(url_for("home"))
     return render_template("register.html", title="Register", form=form)
+
+
  
 @app.route("/aboutUs")
 def about():
@@ -348,13 +351,9 @@ def new_lesson():
         # Extract data from the form
         start_time = new_lesson_form.start_time.data
         end_time = new_lesson_form.end_time.data
-        all_days = new_lesson_form.all_days.data
 
-        # If "Work All Days" checkbox is selected, set working_days to all days of the week
-        if all_days:
-            working_days = "sunday,monday,tuesday,wednesday,thursday,friday,saturday"
-        else:
-            working_days = ','.join(new_lesson_form.workingDays.data)
+
+        working_days = ','.join(new_lesson_form.workingDays.data)
 
         # Remove any accidental extra commas and spaces
         working_days = ','.join([day.strip() for day in working_days.split(',') if day.strip()])
@@ -412,6 +411,7 @@ def new_lesson():
         new_lesson_form=new_lesson_form,
         active_tab="new_lesson"
     )
+
 
 @app.route("/dashboard/manage_appointments", methods=["GET", "POST"])
 @login_required
@@ -556,6 +556,18 @@ def movingFur():
     prev_url = url_for('movingFur', page=page - 1) if page > 1 else None
     pages = range(1, total_pages + 1)
     return render_template('movingFur.html', movingFur_users=users, next_url=next_url, prev_url=prev_url, pages=pages, current_page=page)
+
+@app.route('/search')
+def search():
+    query = request.args.get('query', '')
+    filter_by = request.args.get('filter_by', 'location')
+    if filter_by == 'location':
+        users = User.query.filter(User.address.ilike(f'%{query}%')).all()
+    elif filter_by == 'craftowner':
+        users = User.query.filter(User.username.ilike(f'%{query}%')).all()
+    else:
+        users = []
+    return jsonify([user.to_dict() for user in users])
 
 @app.route('/Carpentry')
 def Carpentry():

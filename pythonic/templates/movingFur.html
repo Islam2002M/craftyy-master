@@ -183,41 +183,79 @@
                         </a>
                     </li>
                     {% endif %}
-                </ul>
-            </nav>
-        </div>
+                </ul> 
+        </nav>
     </div>
-    <br>
-    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-    <script>
-        // Filter cards based on search input
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            const searchQuery = this.value.toLowerCase();
-            const filterBy = document.getElementById('filterSelect').value;
-            const cards = document.querySelectorAll('.card');
+</div>
+<br>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script>
+    // Filter cards based on search input
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchQuery = this.value.toLowerCase();
+        const filterBy = document.getElementById('filterSelect').value;
+        const cards = document.querySelectorAll('.card');
 
-            cards.forEach(card => {
-                let dataValue = '';
-                if (filterBy === 'location') {
-                    dataValue = card.querySelector('.card-text').textContent.toLowerCase();
-                } else if (filterBy === 'craftowner') {
-                    dataValue = card.querySelector('.card-title').textContent.toLowerCase();
-                }
+        cards.forEach(card => {
+            let dataValue = '';
+            if (filterBy === 'location') {
+                dataValue = card.querySelector('.card-text').textContent.toLowerCase();
+            } else if (filterBy === 'craftowner') {
+                dataValue = card.querySelector('.card-title').textContent.toLowerCase();
+            }
 
-                const displayStyle = dataValue.includes(searchQuery) ? 'inline-block' : 'none';
-                card.parentElement.style.display = displayStyle;
-            });
+            const displayStyle = dataValue.includes(searchQuery) ? 'inline-block' : 'none';
+            card.parentElement.style.display = displayStyle;
         });
+    });
 
-        // Clear search input
-        document.getElementById('clearButton').addEventListener('click', function() {
-            document.getElementById('searchInput').value = '';
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                card.parentElement.style.display = 'inline-block';
-            });
+    // Clear search input
+    document.getElementById('clearButton').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.parentElement.style.display = 'inline-block';
         });
-    </script>
-    {% endblock %}
+    });
+    
+    // Function to handle searching through all pages
+    function searchThroughAllPages() {
+        const searchInput = document.getElementById('searchInput').value;
+        const filterSelect = document.getElementById('filterSelect').value;
+        const url = `/search?query=${searchInput}&filter=${filterSelect}`;
+        
+        // Send AJAX request to server
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Update card container with new data
+                const cardContainer = document.getElementById('cardContainer');
+                cardContainer.innerHTML = '';
+                
+                data.forEach(user => {
+                    const cardHtml = `
+                        <div class="col">
+                            <div class="card">
+                                <img src="${user.image_file}" class="card-img-top" alt="MovingFur image">
+                                <div class="card-body">
+                                    <h5 class="card-title">Craft Owner Name: ${user.username}</h5>
+                                    <p class="card-text">Location: ${user.address}</p>
+                                    <p class="card-text">Description: ${user.description}</p>
+                                    <a href="/appointments?craft_owner=${user.username}&service_type=${user.service_type}" class="btn btn-primary" style="font-size: 12px; width: 100px;">Book Now</a>
+                                </div>
+                            </div>
+                        </div>`;
+                    cardContainer.innerHTML += cardHtml;
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // Search button click event
+    document.getElementById('searchButton').addEventListener('click', function() {
+        searchThroughAllPages();
+    });
+</script>
+{% endblock %}
 </body>
 </html>
