@@ -39,9 +39,18 @@
       <div class="mb-3">
         <label for="preferredTimes" class="form-label">Preferred Times:</label>
         <select id="preferredTimes" name="preferred_times" class="form-control" multiple>
-          <option value="morning">Morning (8 AM - 12 PM)</option>
-          <option value="afternoon">Afternoon (12 PM - 4 PM)</option>
-          <option value="evening">Evening (4 PM - 8 PM)</option>
+            <option value="8-9">8 AM - 9 AM</option>
+            <option value="9-10">9 AM - 10 AM</option>
+            <option value="10-11">10 AM - 11 AM</option>
+            <option value="11-12">11 AM - 12 PM</option>
+            <option value="12-1">12 PM - 1 PM</option>
+            <option value="1-2">1 PM - 2 PM</option>
+            <option value="2-3">2 PM - 3 PM</option>
+            <option value="3-4">3 PM - 4 PM</option>
+            <option value="4-5">4 PM - 5 PM</option>
+            <option value="5-6">5 PM - 6 PM</option>
+            <option value="6-7">6 PM - 7 PM</option>
+            <option value="7-8">7 PM - 8 PM</option>
         </select>
       </div>
 
@@ -51,6 +60,6 @@
     <div id="craftsmanRecommendations" class="mt-5">
     </div>
   </div>
-  </body>
+  {% endblock %}
+</body>
 </html>
-{% endblock %}

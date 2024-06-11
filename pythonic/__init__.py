@@ -26,4 +26,5 @@ csrf.init_app(app)
 csrf = CSRFProtect(app)
 
 
+
 from pythonic import routes

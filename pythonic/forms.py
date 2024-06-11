@@ -1,6 +1,7 @@
 from tokenize import String
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
+
 from flask_login import current_user
 from wtforms import DateField,MultipleFileField, SelectMultipleField,HiddenField, StringField, PasswordField, SubmitField, BooleanField, TextAreaField,SelectField, TimeField
 from wtforms.validators import (
@@ -124,11 +125,20 @@ class ProblemForm(FlaskForm):
         ('sunday', 'Sunday')
     ])
     preferred_times = SelectMultipleField('Preferred Times', choices=[
-        ('morning', 'Morning (8 AM - 12 PM)'),
-        ('afternoon', 'Afternoon (12 PM - 4 PM)'),
-        ('evening', 'Evening (4 PM - 8 PM)')
+        ('8-9', '8 AM - 9 AM'),
+        ('9-10', '9 AM - 10 AM'),
+        ('10-11', '10 AM - 11 AM'),
+        ('11-12', '11 AM - 12 PM'),
+        ('12-1', '12 PM - 1 PM'),
+        ('1-2', '1 PM - 2 PM'),
+        ('2-3', '2 PM - 3 PM'),
+        ('3-4', '3 PM - 4 PM'),
+        ('4-5', '4 PM - 5 PM'),
+        ('5-6', '5 PM - 6 PM'),
+        ('6-7', '6 PM - 7 PM'),
+        ('7-8', '7 PM - 8 PM')
     ])
-
+    submit = SubmitField('Submit')
 
 class NewLessonForm(FlaskForm):
     start_time = TimeField('Start Time', validators=[DataRequired()])

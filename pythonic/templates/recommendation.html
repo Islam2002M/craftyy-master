@@ -72,7 +72,6 @@
         <br>
         <div class="row" id="card-container">
             {% for craft_owner_data in recommended_craft_owner_data %}
-                {% if loop.index <= 5 %}
                     <div class="col-md-4 mb-4">
                         <div class="card">
                             <div class="card-body">
@@ -84,7 +83,6 @@
                             </div>
                         </div>
                     </div>
-                {% endif %}
             {% endfor %}
         </div>
     </div>
