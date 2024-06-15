@@ -699,15 +699,15 @@ def preprocess_text(text):
     
     # Tokenization, filtering, and lemmatization
     stop_words = set(stopwords.words("english"))
-    lemmatizer = WordNetLemmatizer()
+    lemmatizer = PorterStemmer()
     preprocessed_tokens = []
     for word, tag in pos_tag(word_tokenize(text)):
         if word.casefold() not in stop_words and word.isalpha():
             pos = get_wordnet_pos(tag)
             if pos:
-                preprocessed_tokens.append(lemmatizer.lemmatize(word, pos))
+                preprocessed_tokens.append(lemmatizer.stem(word, pos))
             else:
-                preprocessed_tokens.append(lemmatizer.lemmatize(word))
+                preprocessed_tokens.append(lemmatizer.stem(word))
     preprocessed_text = ' '.join(preprocessed_tokens)
     return preprocessed_text
 
