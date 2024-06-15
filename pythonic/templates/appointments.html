@@ -164,21 +164,40 @@
     </div>
 
     <script>
-        document.getElementById('appointment_date').addEventListener('change', function() {
-            var selectedDate = this.value;
+        document.addEventListener('DOMContentLoaded', function() {
+            var appointmentDateSelect = document.getElementById('appointment_date');
+            var appointmentTimeSelect = document.getElementById('appointment_time');
             var craftOwner = "{{ craft_owner }}";  // Pass craft_owner to JS
-            fetch('/get_slots?date=' + selectedDate + '&craft_owner=' + craftOwner)
-                .then(response => response.json())
-                .then(data => {
-                    var slotsSelect = document.getElementById('appointment_time');
-                    slotsSelect.innerHTML = '';
-                    data.slots.forEach(function(slot) {
-                        var option = document.createElement('option');
-                        option.value = slot.period;
-                        option.textContent = slot.period;
-                        slotsSelect.appendChild(option);
+
+            // Load initial times for the first date
+            function loadTimes(date) {
+                fetch('/get_slots?date=' + date + '&craft_owner=' + craftOwner)
+                    .then(response => response.json())
+                    .then(data => {
+                        appointmentTimeSelect.innerHTML = '';
+                        if (data.slots.length > 0) {
+                            data.slots.forEach(function(slot) {
+                                var option = document.createElement('option');
+                                option.value = slot.period;
+                                option.textContent = slot.period;
+                                appointmentTimeSelect.appendChild(option);
+                            });
+                        } else {
+                            var option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No available times';
+                            appointmentTimeSelect.appendChild(option);
+                        }
                     });
-                });
+            }
+
+            // Load times for the first available date on page load
+            loadTimes(appointmentDateSelect.value);
+
+            // Update times when the date changes
+            appointmentDateSelect.addEventListener('change', function() {
+                loadTimes(this.value);
+            });
         });
     </script>
 </body>

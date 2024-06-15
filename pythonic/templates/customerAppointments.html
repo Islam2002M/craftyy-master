@@ -87,7 +87,9 @@
                                     <p><strong>Message:</strong> {{ appointment.message }}</p>
                                 </div>
                                 {% if appointment.status == 'Pending' %}
-                                <button class="btn btn-danger mt-2" onclick="confirmCancelAppointment(event, '{{ appointment.id }}', '{{ csrf_token() }}')">Cancel</button>
+                                <!-- Cancel Button -->
+                                <button class="btn btn-danger mt-2 cancel-button" data-appointment-id="{{ appointment.id }}" data-csrf-token="{{ csrf_token() }}" onclick="confirmCancelAppointment(event, '{{ appointment.id }}', '{{ csrf_token() }}')">Cancel</button>
+
                                 {% endif %}
                             </div>
                         </div>
@@ -183,96 +185,133 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let selectedCraftOwner = '';
-        let selectedAppointmentId = '';
+   document.addEventListener('DOMContentLoaded', function () {
+    let selectedCraftOwner = '';
+    let selectedAppointmentId = '';
 
-        window.showErrorModal = function(message) {
-            $('#errorMessage').text(message);
-            $('#errorModal').modal('show');
+    window.showErrorModal = function(message) {
+        $('#errorMessage').text(message);
+        $('#errorModal').modal('show');
+    };
+
+    window.openRatingModal = function(craftOwner, appointmentId) {
+        selectedCraftOwner = craftOwner;
+        selectedAppointmentId = appointmentId;
+        $('#ratingModal').modal('show');
+    };
+
+    window.closeRatingModal = function() {
+        $('#ratingModal').modal('hide');
+    };
+
+    window.enableSubmitBtn = function() {
+        document.getElementById("submitBtn").disabled = false;
+    };
+
+    window.submitRating = function() {
+        const rating = document.querySelector('input[name="rating"]:checked');
+        if (!rating) {
+            showErrorModal('Please select a rating');
+            return;
+        }
+
+        const data = {
+            craft_owner: selectedCraftOwner,
+            appointment_id: selectedAppointmentId,
+            rating: parseInt(rating.value, 10)
         };
 
-        window.openRatingModal = function(craftOwner, appointmentId) {
-            selectedCraftOwner = craftOwner;
-            selectedAppointmentId = appointmentId;
-            $('#ratingModal').modal('show');
-        };
-
-        window.closeRatingModal = function() {
-            $('#ratingModal').modal('hide');
-        };
-
-        window.enableSubmitBtn = function() {
-            document.getElementById("submitBtn").disabled = false;
-        };
-
-        window.submitRating = function() {
-            const rating = document.querySelector('input[name="rating"]:checked');
-            if (!rating) {
-                showErrorModal('Please select a rating');
-                return;
+        fetch('/rate_craft_owner', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err });
             }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Thank you for rating the craft owner!');
+                $('#ratingModal').modal('hide');
+            } else {
+                if (data.error === 'already_rated') {
+                    showErrorModal('You have already rated this craft owner for this appointment.');
+                } else {
+                    showErrorModal('Failed to submit rating. Please try again later.');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showErrorModal('An error occurred while submitting rating. Please try again later.');
+        });
+    };
 
-            const data = {
-                craft_owner: selectedCraftOwner,
-                appointment_id: selectedAppointmentId,
-                rating: parseInt(rating.value, 10)
-            };
+    window.toggleDetails = function(appointmentId) {
+        const details = document.getElementById(`details-${appointmentId}`);
+        if (details.style.display === 'none') {
+            details.style.display = 'block';
+        } else {
+            details.style.display = 'none';
+        }
+    };
 
-            fetch('/rate_craft_owner', {
+    // Function to confirm cancellation of appointment
+    window.confirmCancelAppointment = function(event, appointmentId, csrfToken) {
+        event.stopPropagation();
+        if (confirm('Are you sure you want to cancel this appointment?')) {
+            fetch(`/cancel_appointment/${appointmentId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
+                    'X-CSRFToken': csrfToken
                 },
-                body: JSON.stringify(data)
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Thank you for rating the craft owner!');
-                    $('#ratingModal').modal('hide');
+                    alert('Appointment canceled successfully');
+                    document.getElementById(`appointment-${appointmentId}`).remove();
                 } else {
-                    if (data.error === 'already_rated') {
-                        showErrorModal('You have already rated this craft owner for this appointment.');
-                    } else {
-                        showErrorModal('Failed to submit rating. Please try again later.');
-                    }
+                    showErrorModal(data.error || 'Failed to cancel appointment');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showErrorModal('An error occurred while submitting rating. Please try again later.');
+                showErrorModal('An error occurred while canceling the appointment. Please try again later.');
             });
-        };
+        }
+    };
 
-        window.toggleDetails = function(appointmentId) {
-            const details = document.getElementById(`details-${appointmentId}`);
-            if (details.style.display === 'none') {
-                details.style.display = 'block';
-            } else {
-                details.style.display = 'none';
-            }
-        };
-         // Event listener for the OK button in the error modal
- document.getElementById('errorOkBtn').addEventListener('click', function() {
-            $('#errorModal').modal('hide');
-        });
- 
-        // Enable submit button when a rating is selected
-        document.querySelectorAll('input[name="rating"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                enableSubmitBtn();
-            });
-        });
-       
+    // Event listener for the OK button in the error modal
+    document.getElementById('errorOkBtn').addEventListener('click', function() {
+        $('#errorModal').modal('hide');
     });
-</script>
 
+    // Enable submit button when a rating is selected
+    document.querySelectorAll('input[name="rating"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            enableSubmitBtn();
+        });
+    });
+
+    // Attach confirmCancelAppointment function to cancel buttons
+    document.querySelectorAll('.cancel-button').forEach(button => {
+        button.addEventListener('click', function(event) {
+            const appointmentId = this.getAttribute('data-appointment-id');
+            const csrfToken = this.getAttribute('data-csrf-token');
+            confirmCancelAppointment(event, appointmentId, csrfToken);
+        });
+    });
+
+});
+
+</script>
 
 {% endblock %}

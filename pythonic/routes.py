@@ -152,37 +152,26 @@ def appointments():
     service_type = request.args.get('service_type') or form.service_type.data
     selected_date_str = request.args.get('appointment_date') or form.appointment_date.data
 
-    app.logger.debug(f"Craft Owner: {craft_owner_name}")
-    app.logger.debug(f"Service Type: {service_type}")
-    app.logger.debug(f"Selected Date (str): {selected_date_str}")
-
     if isinstance(selected_date_str, str):
         try:
             selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
         except ValueError:
             selected_date = None
-            app.logger.error(f"Invalid date format for selected_date: {selected_date_str}")
     else:
         selected_date = selected_date_str
-
-    app.logger.debug(f"Converted selected_date to: {selected_date}")
 
     available_dates = []
     available_slots = []
     slots = []
+    availability_ids = []
 
     if craft_owner_name:
         user = User.query.filter_by(username=craft_owner_name).first()
-        app.logger.debug(f"Fetched user: {user}")
         if user:
             availabilities = Availability.query.filter_by(owner_id=user.id).all()
-            app.logger.debug(f"Fetched availabilities: {availabilities}")
             availability_ids = [availability.id for availability in availabilities]
-            app.logger.debug(f"Collected availability_ids: {availability_ids}")
             available_slots = Slot.query.filter(Slot.availability_id.in_(availability_ids)).all()
-            app.logger.debug(f"Fetched available slots: {available_slots}")
             available_dates = sorted(set([slot.date for slot in available_slots]))
-            app.logger.debug(f"Extracted available dates: {available_dates}")
 
             if selected_date:
                 slots = Slot.query.filter(
@@ -190,23 +179,17 @@ def appointments():
                     Slot.is_available == True,
                     Slot.date == selected_date
                 ).all()
-                app.logger.debug(f"Filtered slots query: {slots}")
-            else:
-                app.logger.debug("Selected date is None or invalid.")
 
-    if request.method == 'POST' :
-        app.logger.debug("Form validated successfully")
-        selected_slot = Slot.query.filter_by(
-            period=form.appointment_time.data,
-            date=form.appointment_date.data,
-            is_available=True
+    if request.method == 'POST':
+        selected_slot = Slot.query.filter(
+            Slot.period == form.appointment_time.data,
+            Slot.date == form.appointment_date.data,
+            Slot.is_available == True,
+            Slot.availability_id.in_(availability_ids)
         ).first()
 
         if selected_slot:
             try:
-                app.logger.debug(f"Selected slot: {selected_slot}")
-                
-                # Convert form.appointment_date.data to date object
                 appointment_date = datetime.strptime(form.appointment_date.data, '%Y-%m-%d').date()
 
                 appointment = Appointment(
@@ -224,19 +207,16 @@ def appointments():
                     appointment_purpose=form.appointment_purpose.data,
                     message=form.message.data
                 )
-                app.logger.debug(f"Appointment object created: {appointment}")
+
                 db.session.add(appointment)
                 selected_slot.is_available = False
                 db.session.commit()
-                app.logger.debug("Appointment committed to the database and slot availability updated")
+                app.logger.debug(f"Slot {selected_slot.id} availability updated to {selected_slot.is_available}")
                 flash('Your appointment has been booked!', 'success')
                 return redirect(url_for('home'))
             except Exception as e:
-                app.logger.error(f"An error occurred while committing to the database: {str(e)}")
                 db.session.rollback()
                 flash(f'An error occurred: {str(e)}', 'danger')
-        else:
-            flash('The selected slot is no longer available. Please choose another slot.', 'danger')
 
     form.craft_owner.data = craft_owner_name
     form.service_type.data = service_type
@@ -491,6 +471,7 @@ def cancel_appointment(appointment_id):
     db.session.commit()
     return jsonify({"success": True})
 
+
 @app.route("/dashboard/newWork", methods=["GET", "POST"])
 @login_required
 def newWork():
@@ -705,7 +686,7 @@ def handle_problem_form():
             craft_owner_data.append((craft_owner.username, craft_owner.description, craft_owner.address, craft_owner.service_type, list(set(availability_days))))
 
         # Recommend craft owners based on combined similarity
-        recommended_craft_owner_data = recommend_craft_owners(craft_owner_data, translated_description, preferred_days)
+        recommended_craft_owner_data = recommend_craft_ownersByDotProduct(craft_owner_data, translated_description, preferred_days)
 
         # Render template with recommendation results
         return render_template('recommendation.html', problem_description=translated_description, recommended_craft_owner_data=recommended_craft_owner_data)
@@ -795,6 +776,74 @@ def recommend_craft_owners(craft_owner_data, customer_problem_description, prefe
     combined_similarity_scores = []
     for craft_owner, desc_similarity, days_similarity in filtered_craft_owners:
         combined_similarity = (desc_similarity + days_similarity/8) /2
+        combined_similarity_scores.append((craft_owner, combined_similarity))
+
+    # Sort craft owners by combined similarity score in descending order
+    sorted_craft_owners = sorted(combined_similarity_scores, key=lambda x: x[1], reverse=True)
+
+    # Prepare craft owner data as a list of dictionaries
+    recommended_craft_owner_data = []
+    for craft_owner, similarity_score in sorted_craft_owners:
+        name, description, address, service_type, availability = craft_owner
+        recommended_craft_owner_data.append({
+            'name': name,
+            'description': description,
+            'address': address,
+            'service_type': service_type,
+            'availability': ', '.join(availability),
+            'similarity_score': similarity_score
+        })
+
+    return recommended_craft_owner_data
+def recommend_craft_ownersByDotProduct(craft_owner_data, customer_problem_description, preferred_days):
+    # Preprocess craft owner descriptions
+    preprocessed_craft_owner_descriptions = [(craft_owner[0], preprocess_text(craft_owner[1]) + " " + preprocess_text(craft_owner[2])) for craft_owner in craft_owner_data]
+    
+    # Preprocess customer problem description
+    preprocessed_customer_problem_description = preprocess_text(customer_problem_description)
+
+    # Calculate TF-IDF vectors for craft owner descriptions
+    craft_owner_descriptions = [owner[1] for owner in preprocessed_craft_owner_descriptions]
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix_craft_owners = vectorizer.fit_transform(craft_owner_descriptions)
+
+    # Calculate TF-IDF vector for customer problem description
+    tfidf_matrix_customer = vectorizer.transform([preprocessed_customer_problem_description])
+
+    # Calculate dot product for descriptions
+    description_dot_product = tfidf_matrix_craft_owners.dot(tfidf_matrix_customer.T).toarray().flatten()
+
+    # Convert days to vectors
+    preferred_days_vector = days_to_vector(preferred_days)
+    available_days_vectors = [days_to_vector(desc[4]) for desc in craft_owner_data]
+
+    # Calculate dot product for days
+    days_dot_product_scores = [np.dot(preferred_days_vector, available_days_vector) for available_days_vector in available_days_vectors]
+
+    # Define important words
+    important_words = ['plumb', 'plumber', 'plumbing', 'carpentry', 'Carpenter', 'paint', 'painting', 'clean', 'cleaning', 'electrical', 'electric', 'moving furniture', 'furniture move', 'move furniture']
+    
+    # Extract important words from customer problem description
+    customer_words = set(preprocessed_customer_problem_description.split())
+    matched_important_words = customer_words.intersection(important_words)
+
+    # Filter craft owners based on the presence of matched important words in their descriptions
+    filtered_craft_owners = []
+    for idx, (craft_owner, similarity_score) in enumerate(zip(craft_owner_data, description_dot_product)):
+        owner_name, owner_description, owner_address, owner_service_type, owner_availability = craft_owner
+        owner_description_lower = owner_description.lower()
+
+        if any(word in owner_description_lower for word in matched_important_words):
+            filtered_craft_owners.append((craft_owner, similarity_score, days_dot_product_scores[idx]))
+
+    # If no craft owners match the important words, use the original list
+    if not filtered_craft_owners:
+        filtered_craft_owners = [(craft_owner, desc_dot, days_dot) for craft_owner, desc_dot, days_dot in zip(craft_owner_data, description_dot_product, days_dot_product_scores)]
+
+    # Combine both similarities and sort craft owners
+    combined_similarity_scores = []
+    for craft_owner, desc_similarity, days_similarity in filtered_craft_owners:
+        combined_similarity = (desc_similarity + days_similarity / 8) / 2
         combined_similarity_scores.append((craft_owner, combined_similarity))
 
     # Sort craft owners by combined similarity score in descending order

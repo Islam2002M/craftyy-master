@@ -42,17 +42,11 @@
                         {{ form.submit(class='btn btn-outline-info')}}
                     </div>
                     
-                    <div class="form-check">
-                        {{form.remember(class='form-check-input')}}
-                        {{form.remember.label(class='form-check-input-label')}}
-                    </div>
+                    
                 </fieldset>
             </form>
             <br>
-            <small class="text-muted ml-2">
-                <a href="#">Forget Password?
-                </a>
-            </small>
+            
             <small class="text-muted">
                 Need An Account?
                 <a class="ml-2" href="{{url_for('register')}}"> Sign Up Here</a>

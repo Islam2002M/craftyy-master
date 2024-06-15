@@ -96,7 +96,7 @@ class Slot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     period = db.Column(db.String(20), nullable=False)
     duration = db.Column(db.Integer, nullable=False)  # Define duration column
-    is_available = db.Column(db.Integer, nullable=False, default=1)   
+    is_available = db.Column(db.Boolean, default=True) 
     availability_id = db.Column(db.Integer, db.ForeignKey('availability.id'), nullable=False)
     #user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     date = db.Column(db.String(20), nullable=False)
